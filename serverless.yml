@@ -1,0 +1,46 @@
+service: aws-lambda-token
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-2
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:*
+          Resource:
+            - arn:aws:dynamodb:us-east-2:470882761513:table/TokenTable
+
+functions:
+  createToken:
+    handler: src/token/create.create
+    events:
+      - httpApi:
+          path: /tokens
+          method: post
+  getTarjeta:
+    handler: src/tarjeta/get.get
+    events:
+      - httpApi:
+          path: /tarjeta/{token}
+          method: get
+
+resources:
+  Resources:
+    TokenTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        TableName: TokenTable
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+
+plugins:
+  - serverless-plugin-typescript
